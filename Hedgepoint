@@ -1,247 +1,275 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Hedgepoint — Cards por CSV (Carousel)</title>
-  <style>
-    :root{--hp-orange:#ED8B00;--hp-blue:#272259;--hp-white:#fff;--hp-bg:#0f0f12;--hp-card:#12141a}
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--hp-bg);color:var(--hp-white);font-family:Montserrat,Arial,Helvetica,sans-serif}
-    .hp-wrap{max-width:1120px;margin:28px auto;padding:0 16px}
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Hedgepoint — Cards (Lite c/ cotas por commodity)</title>
+<style>
+  :root{--hp-orange:#ED8B00;--hp-blue:#272259;--hp-white:#fff;--hp-bg:#0f0f12;--hp-card:#12141a}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--hp-bg);color:var(--hp-white);font-family:Montserrat,Arial,Helvetica,sans-serif}
+  .hp-wrap{max-width:1120px;margin:28px auto;padding:0 16px}
 
-    /* Carousel */
-    .hp-carousel{position:relative}
-    .hp-viewport{overflow:hidden;border:2px solid var(--hp-blue)}
-    .hp-track{display:flex;transition:transform .6s ease;will-change:transform}
-    .hp-slide{flex:0 0 100%}
+  /* Viewport com scroll-snap (leve) */
+  .hp-viewport{display:flex;overflow:auto;scroll-snap-type:x mandatory;gap:14px;padding-bottom:6px;border:2px solid var(--hp-blue)}
+  .hp-viewport::-webkit-scrollbar{height:8px}
+  .hp-viewport::-webkit-scrollbar-thumb{background:#29304a}
+  .hp-slide{scroll-snap-align:start;flex:0 0 100%}
+  @media (min-width:720px){ .hp-slide{flex-basis:calc(50% - 7px)} }
+  @media (min-width:1024px){ .hp-slide{flex-basis:calc(33.333% - 9.5px)} }
 
-    /* Nav arrows (pontudas) */
-    .hp-nav{position:absolute;top:50%;transform:translateY(-50%);border:none;background:transparent;cursor:pointer;padding:0}
-    .hp-nav:focus-visible{outline:2px solid var(--hp-orange)}
-    .hp-nav svg{width:44px;height:44px;fill:rgba(255,255,255,.9);filter:drop-shadow(0 2px 6px rgba(0,0,0,.6))}
-    .hp-prev{left:8px}
-    .hp-next{right:8px}
+  /* Card enxuto (sem cantos arredondados) */
+  .hp-card{border:1.5px solid var(--hp-blue);background:var(--hp-card);display:flex;flex-direction:column;height:100%}
+  .hp-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1.5px solid #1c2030}
+  .hp-pill{padding:2px 8px;border:1.5px solid var(--hp-orange);font-size:11px;letter-spacing:.02em;text-transform:uppercase}
+  .hp-veh{font-size:12px;color:#c8c8c8}
+  .hp-body{padding:12px}
+  .hp-title{margin:0 0 10px 0;line-height:1.3}
+  .hp-title a{color:#fff;text-decoration:none;border-bottom:2px solid transparent}
+  .hp-title a:hover{border-color:var(--hp-orange)}
+  .hp-exp{margin-top:auto;display:flex;align-items:center;gap:10px;padding:12px;border-top:1.5px solid #1c2030;background:linear-gradient(0deg,#0b0d12,#0f1117)}
+  .hp-exp img{width:44px;height:44px;object-fit:cover;border:2px solid var(--hp-blue)}
+  .hp-who{display:flex;flex-direction:column}
+  .hp-name{font-weight:700}
+  .hp-role{font-size:12px;color:#c8c8c8}
+  @media (max-width:720px){.hp-role{display:none}}
 
-    /* Dots */
-    .hp-dots{display:flex;gap:8px;justify-content:center;margin:10px 0 0}
-    .hp-dot{width:12px;height:12px;border:2px solid #fff;background:transparent;cursor:pointer}
-    .hp-dot.active{background:var(--hp-orange);border-color:var(--hp-orange)}
-
-    /* Card (sem cantos arredondados) */
-    .hp-card{border:1.5px solid var(--hp-blue);background:var(--hp-card);display:flex;flex-direction:column;height:100%}
-    .hp-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1.5px solid #1c2030}
-    .hp-pill{padding:2px 8px;border:1.5px solid var(--hp-orange);font-size:11px;letter-spacing:.02em;text-transform:uppercase}
-    .hp-veh{font-size:12px;color:#c8c8c8}
-    .hp-body{padding:12px}
-    .hp-title{margin:0 0 10px 0;line-height:1.3}
-    .hp-title a{color:#fff;text-decoration:none;border-bottom:2px solid transparent}
-    .hp-title a:hover{border-color:var(--hp-orange)}
-    .hp-exp{margin-top:auto;display:flex;align-items:center;gap:10px;padding:12px;border-top:1.5px solid #1c2030;background:linear-gradient(0deg,#0b0d12,#0f1117)}
-    .hp-exp img{width:44px;height:44px;object-fit:cover;border:2px solid var(--hp-blue)}
-    .hp-who{display:flex;flex-direction:column}
-    .hp-name{font-weight:700}
-    .hp-role{font-size:12px;color:#c8c8c8}
-    @media (max-width:720px){.hp-role{display:none}}
-  </style>
+  /* Nav setas leves (usam scroll, não transform) */
+  .hp-nav{display:flex;justify-content:space-between;margin:10px 0 0}
+  .hp-btn{border:2px solid var(--hp-orange);background:transparent;color:#fff;padding:6px 10px;cursor:pointer}
+  .hp-btn:hover{background:var(--hp-orange);color:#000}
+</style>
 </head>
 <body>
   <div class="hp-wrap">
-    <div class="hp-carousel" aria-roledescription="carousel" aria-label="Notícias com especialista">
-      <button class="hp-nav hp-prev" id="hpPrev" aria-label="Anterior">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 3 5 12l10.5 9 1.5-1.8L8.7 12 17 4.8z"/></svg>
-      </button>
-      <div class="hp-viewport">
-        <div class="hp-track" id="hpTrack" role="group" aria-live="polite"></div>
-      </div>
-      <button class="hp-nav hp-next" id="hpNext" aria-label="Próximo">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 3 19 12l-10.5 9-1.5-1.8L15.3 12 7 4.8z"/></svg>
-      </button>
+    <div id="hpViewport" class="hp-viewport" aria-roledescription="carousel" aria-label="Notícias com especialista"></div>
+    <div class="hp-nav">
+      <button class="hp-btn" id="prevBtn" aria-label="Anterior">←</button>
+      <button class="hp-btn" id="nextBtn" aria-label="Próximo">→</button>
     </div>
-    <div class="hp-dots" id="hpDots" aria-hidden="true"></div>
   </div>
 
-  <script>
-  // ===== CONFIG =====
-  const CONFIG = {
-    // Seu CSV público (Google Sheets → Publicar como CSV)
-    CSV_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEVY2tjAstOUFhopJ05zJoPq1l979hSuc2N01pF4v8nEdm4EKk7p08A2X1adlyBcxTEgIvNJxz574g/pub?gid=1592806276&single=true&output=csv',
+<script>
+/* ===== CONFIG ===== */
+const CONFIG = {
+  CSV_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEVY2tjAstOUFhopJ05zJoPq1l979hSuc2N01pF4v8nEdm4EKk7p08A2X1adlyBcxTEgIvNJxz574g/pub?gid=1592806276&single=true&output=csv',
+  MAX_CARDS: 12,
+  FILTERS:{
+    year: 2025,              // defina null para não filtrar por ano
+    tier1Only: true,         // Tier 1 ligado
+    tier1List: [
+      'Valor Econômico','Estadão','Folha de S.Paulo','O Globo','Agência Estado',
+      'Reuters','Bloomberg','Financial Times'
+    ]
+  },
+  SELECTION:{                // garante representatividade
+    byTheme: true,
+    themes: ['oleaginosas','grãos','café','açúcar','cacau'],
+    perTheme: 2,             // até 2 mais recentes por commodity
+    fallbackNonTier1: false  // mude para true se quiser completar a cota com não-Tier1 quando faltar
+  },
+  SPECIALISTS:{
+    'café':        { name:'Laleska Moda',    role:'Analista de Inteligência de Mercado',         photo:'https://9334756.fs1.hubspotusercontent-na1.net/hubfs/9334756/Mkt%20Intell%20-%20Seta%20laranja/Laleska%20Moda.png' },
+    'oleaginosas': { name:'Thais Italiani',  role:'Gerente de Inteligência de Mercados',         photo:'https://9334756.fs1.hubspotusercontent-na1.net/hubfs/9334756/Mkt%20Intell%20-%20Seta%20laranja/Thais%20Italiani.png' },
+    'cacau':       { name:'Carolina França', role:'Analista Sênior de Inteligência de Mercado',  photo:'https://9334756.fs1.hubspotusercontent-na1.net/hubfs/9334756/Mkt%20Intell%20-%20Seta%20laranja/Carol%20Fran%C3%A7a.png' },
+    'açúcar':      { name:'Lívea Coda',      role:'Coordenadora de Inteligência de Mercado',     photo:'https://9334756.fs1.hubspotusercontent-na1.net/hubfs/9334756/Mkt%20Intell%20-%20Seta%20laranja/L%C3%ADvea%20Coda.png' },
+    'grãos':       { name:'Luiz Roque',      role:'Coordenador de Inteligência de Mercado',      photo:'https://9334756.fs1.hubspotusercontent-na1.net/hubfs/9334756/Mkt%20Intell%20-%20Seta%20laranja/Luiz%20Roque.png' }
+  },
+  UTM:{enabled:true, source:'news-cards', medium:'referral', campaign:'press-mentions'}
+};
 
-    // Especialistas por tema canônico (com fotos do HubSpot)
-    SPECIALISTS: {
-      'café':        { name:'Laleska Moda',    role:'Analista de Inteligência de Mercado',         photo:'https://9334756.fs1.hubspotusercontent-na1.net/hubfs/9334756/Mkt%20Intell%20-%20Seta%20laranja/Laleska%20Moda.png' },
-      'oleaginosas': { name:'Thais Italiani',  role:'Gerente de Inteligência de Mercados',         photo:'https://9334756.fs1.hubspotusercontent-na1.net/hubfs/9334756/Mkt%20Intell%20-%20Seta%20laranja/Thais%20Italiani.png' },
-      'cacau':       { name:'Carolina França', role:'Analista Sênior de Inteligência de Mercado',  photo:'https://9334756.fs1.hubspotusercontent-na1.net/hubfs/9334756/Mkt%20Intell%20-%20Seta%20laranja/Carol%20Fran%C3%A7a.png' },
-      'açúcar':      { name:'Lívea Coda',      role:'Coordenadora de Inteligência de Mercado',     photo:'https://9334756.fs1.hubspotusercontent-na1.net/hubfs/9334756/Mkt%20Intell%20-%20Seta%20laranja/L%C3%ADvea%20Coda.png' },
-      'grãos':       { name:'Luiz Roque',      role:'Coordenador de Inteligência de Mercado',      photo:'https://9334756.fs1.hubspotusercontent-na1.net/hubfs/9334756/Mkt%20Intell%20-%20Seta%20laranja/Luiz%20Roque.png' }
-    },
+/* ===== Utils ===== */
+const strip=s=>(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const lower=s=>strip(String(s||'')).toLowerCase();
+const vehCanon=s=>lower(s).replace(/[^\w]+/g,' ').trim();
+const TIER1 = new Set(CONFIG.FILTERS.tier1List.map(vehCanon));
 
-    // UTMs automáticas (opcional)
-    UTM:{enabled:true, source:'news-cards', medium:'referral', campaign:'press-mentions'},
+function themeOf(raw){
+  const s=lower(raw);
+  if(/(soja|oleagin|canola|girassol|sunflower|colza)/.test(s)) return 'oleaginosas';
+  if(/(milho|corn|trigo|wheat|sorgo|grao|gr[ãa]os)/.test(s))   return 'grãos';
+  if(/(cafe|coffee|arabica|robusta)/.test(s))                 return 'café';
+  if(/(acucar|a[cç]ucar|sugar|etanol|ethanol|cana)/.test(s))  return 'açúcar';
+  if(/(cacau|cocoa|chocolate)/.test(s))                       return 'cacau';
+  return 'grãos';
+}
+const specOf=t=>CONFIG.SPECIALISTS[t]||CONFIG.SPECIALISTS['grãos'];
 
-    // Filtros (Tier 1 ativado + ano 2025 por padrão)
-    FILTERS:{
-      year: 2025,         // defina para null para não filtrar por ano
-      years: [],          // ou use múltiplos anos: [2024,2025]
-      tier1Only: true,    // <- ATIVADO
-      tier1List: [
-        'Valor Econômico','Estadão','Folha de S.Paulo','O Globo','Agência Estado',
-        'Reuters','Bloomberg','Financial Times'
-      ]
+function withUTM(url){
+  if(!url||!CONFIG.UTM.enabled) return url;
+  try{const u=new URL(url);
+    if(!u.searchParams.get('utm_source')) u.searchParams.set('utm_source',CONFIG.UTM.source);
+    if(!u.searchParams.get('utm_medium')) u.searchParams.set('utm_medium',CONFIG.UTM.medium);
+    if(!u.searchParams.get('utm_campaign')) u.searchParams.set('utm_campaign',CONFIG.UTM.campaign);
+    return u.toString();
+  }catch{return url}
+}
+
+function parseDate(s){
+  if(!s) return null; s=String(s).trim();
+  let d=new Date(s); if(!isNaN(d)) return d;
+  const m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if(m){ const dd=+m[1], mm=+m[2], yy=m[3].length===2?2000+(+m[3]):+m[3]; d=new Date(yy,mm-1,dd); if(!isNaN(d)) return d; }
+  return null;
+}
+
+/* CSV parser simples (com aspas) */
+function parseCSV(text){
+  const out=[], re=/\s*(?:"([^"]*(?:""[^"]*)*)"|([^,]*))\s*(,|\n|\r|$)/g; let m,row=[];
+  text=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  while((m=re.exec(text))){ const v=m[1]?m[1].replace(/""/g,'"'):m[2]; row.push(v); const sep=m[3]; if(sep==='\n'||sep===''){out.push(row);row=[];} }
+  if(row.length) out.push(row);
+  const [h,...data]=out; if(!h) return [];
+  const idx={}; h.forEach((x,i)=>idx[lower(x)]=i);
+  return data.map(r=>({
+    titulo:    r[idx['titulo']] ?? r[idx['nome da noticia']] ?? r[idx['nome da notícia']] ?? r[0],
+    veiculo:   r[idx['veiculo']] ?? r[idx['veículo']] ?? r[1],
+    data:      r[idx['datapublicacao']] ?? r[idx['data']] ?? '',
+    commodity: r[idx['commodity']] ?? r[idx['categoria']] ?? r[idx['tema']] ?? r[2],
+    url:       r[idx['url']] ?? r[idx['link']] ?? r[3]
+  })).filter(x=>x.titulo && (x.url||x.veiculo));
+}
+
+/* Dedup + Filtros */
+function dedup(list){
+  const su=new Set(), st=new Set();
+  return list.filter(it=>{
+    let ok=true;
+    if(it.url){ const k=lower(it.url.replace(/^https?:\/\//,'')); if(su.has(k)) ok=false; else su.add(k); }
+    const k2=lower(it.titulo); if(st.has(k2)) ok=false; else st.add(k2);
+    return ok;
+  });
+}
+function filterYear(rows, year){
+  if(!year) return rows;
+  return rows.filter(r=>{ const d=parseDate(r.data); return d && d.getFullYear()===year; });
+}
+function filterTier1(rows){
+  if(!CONFIG.FILTERS.tier1Only) return rows;
+  return rows.filter(r=>TIER1.has(vehCanon(r.veiculo||'')));
+}
+
+/* ===== Seleção com cotas por commodity ===== */
+function pickQuotaByTheme(rowsStrict, rowsYearOnly){
+  const THEMES = CONFIG.SELECTION.themes;
+  const PER = CONFIG.SELECTION.perTheme;
+  const fallback = CONFIG.SELECTION.fallbackNonTier1;
+
+  // agrupa e ordena (mais recentes primeiro)
+  const byThemeStrict = Object.fromEntries(THEMES.map(t=>[t,[]]));
+  rowsStrict.forEach(r=>{ const t=themeOf(r.commodity); if(byThemeStrict[t]) byThemeStrict[t].push(r); });
+  THEMES.forEach(t=>byThemeStrict[t].sort((a,b)=> (parseDate(b.data)-parseDate(a.data)) || 0));
+
+  // fallback (ano apenas) quando não houver o suficiente no strict
+  const byThemeYearOnly = Object.fromEntries(THEMES.map(t=>[t,[]]));
+  if(fallback){
+    rowsYearOnly.forEach(r=>{ const t=themeOf(r.commodity); if(byThemeYearOnly[t]) byThemeYearOnly[t].push(r); });
+    THEMES.forEach(t=>byThemeYearOnly[t].sort((a,b)=> (parseDate(b.data)-parseDate(a.data)) || 0));
+  }
+
+  // coleta até PER por tema, com fallback opcional
+  const pickedPerTheme = Object.fromEntries(THEMES.map(t=>[t,[]]));
+  const seen = new Set();
+  const keyOf = r => (r.url || r.titulo);
+
+  THEMES.forEach(t=>{
+    const want = PER;
+    const fromStrict = byThemeStrict[t] || [];
+    for(const r of fromStrict){
+      const k = keyOf(r); if(seen.has(k)) continue;
+      pickedPerTheme[t].push(r); seen.add(k);
+      if(pickedPerTheme[t].length>=want) break;
     }
-  };
-
-  // ===== Utils =====
-  const strip=s=>(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-  const lower=s=>strip(String(s||'')).toLowerCase();
-  const vehCanon=s=>lower(s).replace(/[^\w]+/g,' ').trim();
-  let TIER1_SET=new Set((CONFIG.FILTERS.tier1List||[]).map(vehCanon));
-
-  function themeOf(raw){
-    const s=lower(raw);
-    if(/(soja|oleagin|canola|girassol|sunflower|colza)/.test(s)) return 'oleaginosas';
-    if(/(milho|corn|trigo|wheat|sorgo|grao|gr[ãa]os)/.test(s))   return 'grãos';
-    if(/(cafe|coffee|arabica|robusta)/.test(s))                 return 'café';
-    if(/(acucar|a[cç]ucar|sugar|etanol|ethanol|cana)/.test(s))  return 'açúcar';
-    if(/(cacau|cocoa|chocolate)/.test(s))                       return 'cacau';
-    return 'grãos';
-  }
-  const specOf=t=>CONFIG.SPECIALISTS[t]||CONFIG.SPECIALISTS['grãos'];
-
-  function withUTM(url){
-    if(!url||!CONFIG.UTM.enabled) return url;
-    try{
-      const u=new URL(url);
-      if(!u.searchParams.get('utm_source')) u.searchParams.set('utm_source',CONFIG.UTM.source);
-      if(!u.searchParams.get('utm_medium')) u.searchParams.set('utm_medium',CONFIG.UTM.medium);
-      if(!u.searchParams.get('utm_campaign')) u.searchParams.set('utm_campaign',CONFIG.UTM.campaign);
-      return u.toString();
-    }catch{ return url }
-  }
-
-  // Parse data dd/mm/aaaa ou ISO
-  function parseDateFlexible(s){
-    if(!s) return null; s=String(s).trim();
-    let d=new Date(s); if(!isNaN(d)) return d;
-    const m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
-    if(m){
-      const dd=+m[1], mm=+m[2], yy=m[3].length===2?2000+(+m[3]):+m[3];
-      d=new Date(yy, mm-1, dd);
-      if(!isNaN(d)) return d;
+    if(pickedPerTheme[t].length<want && fallback){
+      for(const r of (byThemeYearOnly[t]||[])){
+        const k=keyOf(r); if(seen.has(k)) continue;
+        pickedPerTheme[t].push(r); seen.add(k);
+        if(pickedPerTheme[t].length>=want) break;
+      }
     }
-    return null;
+  });
+
+  // interleave (round-robin) para balancear na vitrine
+  const interleaved=[];
+  for(let i=0;i<PER;i++){
+    for(const t of THEMES){
+      const item = pickedPerTheme[t][i];
+      if(item) interleaved.push(item);
+    }
   }
 
-  // CSV parser simples com aspas
-  function parseCSV(text){
-    const rows=[], re=/\s*(?:"([^"]*(?:""[^"]*)*)"|([^,]*))\s*(,|\n|\r|$)/g; let m,row=[];
-    text=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
-    while((m=re.exec(text))){ const v=m[1]?m[1].replace(/""/g,'"'):m[2]; row.push(v); const sep=m[3]; if(sep==='\n'||sep===''){rows.push(row);row=[];} }
-    if(row.length) rows.push(row);
-    const [h,...data]=rows; if(!h) return [];
-    const idx={}; h.forEach((x,i)=>idx[lower(x)]=i);
-    return data.map(r=>({
-      titulo:    r[idx['titulo']] ?? r[idx['nome da noticia']] ?? r[idx['nome da notícia']] ?? r[0],
-      veiculo:   r[idx['veiculo']] ?? r[idx['veículo']] ?? r[1],
-      data:      r[idx['datapublicacao']] ?? r[idx['data']] ?? '',
-      commodity: r[idx['commodity']] ?? r[idx['categoria']] ?? r[idx['tema']] ?? r[2],
-      url:       r[idx['url']] ?? r[idx['link']] ?? r[3],
-      // escopo (nacional/internacional) é ignorado
-    })).filter(x=>x.titulo && (x.url||x.veiculo));
+  // preenche sobras com os mais recentes do strict (de outros temas) até MAX_CARDS
+  if(interleaved.length<CONFIG.MAX_CARDS){
+    const rest = rowsStrict.filter(r=>!seen.has(keyOf(r)))
+      .sort((a,b)=> (parseDate(b.data)-parseDate(a.data)) || 0);
+    for(const r of rest){
+      interleaved.push(r);
+      if(interleaved.length>=CONFIG.MAX_CARDS) break;
+    }
   }
 
-  function dedup(list){
-    const su=new Set(), st=new Set();
-    return list.filter(it=>{
-      let ok=true;
-      if(it.url){ const k=lower(it.url.replace(/^https?:\/\//,'')); if(su.has(k)) ok=false; else su.add(k); }
-      const k2=lower(it.titulo); if(st.has(k2)) ok=false; else st.add(k2);
-      return ok;
-    });
-  }
+  return interleaved.slice(0, CONFIG.MAX_CARDS);
+}
 
-  // ===== Filters =====
-  function allowedByYear(row){
-    const y=CONFIG.FILTERS.year, ys=CONFIG.FILTERS.years;
-    if(!y && !(Array.isArray(ys)&&ys.length)) return true;
-    const d=parseDateFlexible(row.data); if(!d) return false;
-    const yy=d.getFullYear();
-    if(y) return yy===y;
-    return ys.includes(yy);
-  }
-  function allowedByTier1(row){
-    if(!CONFIG.FILTERS.tier1Only) return true;
-    return TIER1_SET.has(vehCanon(row.veiculo||''));
-  }
-  function applyFilters(rows){ return rows.filter(r=>allowedByYear(r) && allowedByTier1(r)); }
-
-  const fmtDate=s=>{ const d=parseDateFlexible(s); return d? d.toLocaleDateString('pt-BR') : (s||''); };
-
-  // ===== Render =====
-  function cardHTML(row){
-    const theme=themeOf(row.commodity), sp=specOf(theme), link=row.url?withUTM(row.url):null, date=fmtDate(row.data);
-    return `<article class="hp-card">
-      <div class="hp-head"><span class="hp-pill">${theme.toUpperCase()}</span><span class="hp-veh">${row.veiculo||''}${date?` • ${date}`:''}</span></div>
+/* Render de 1 card */
+function cardHTML(row){
+  const theme=themeOf(row.commodity), sp=specOf(theme), link=row.url?withUTM(row.url):null;
+  const d=parseDate(row.data), dateTxt=d? d.toLocaleDateString('pt-BR') : (row.data||'');
+  return `<div class="hp-slide">
+    <article class="hp-card">
+      <div class="hp-head"><span class="hp-pill">${theme.toUpperCase()}</span><span class="hp-veh">${row.veiculo||''}${dateTxt?` • ${dateTxt}`:''}</span></div>
       <div class="hp-body"><h3 class="hp-title">${link?`<a href="${link}" target="_blank" rel="noopener">${row.titulo}</a>`:row.titulo}</h3></div>
-      <div class="hp-exp"><img src="${sp.photo}" alt="${sp.name}"><div class="hp-who"><span class="hp-name">${sp.name}</span><span class="hp-role">${sp.role}</span></div></div>
-    </article>`;
-  }
+      <div class="hp-exp"><img src="${sp.photo}" alt="${sp.name}" loading="lazy" decoding="async"><div class="hp-who"><span class="hp-name">${sp.name}</span><span class="hp-role">${sp.role}</span></div></div>
+    </article>
+  </div>`;
+}
 
-  // ===== Carousel =====
-  const track=document.getElementById('hpTrack');
-  const dots=document.getElementById('hpDots');
-  const prevBtn=document.getElementById('hpPrev');
-  const nextBtn=document.getElementById('hpNext');
-  let items=[], perView=1, index=0, autoTimer=null; const AUTO_MS=6000;
+/* Autoplay por scroll (suave) */
+const vp=document.getElementById('hpViewport');
+const prevBtn=document.getElementById('prevBtn');
+const nextBtn=document.getElementById('nextBtn');
+let autoT=null, PAGE=0;
 
-  function computePerView(){ return window.innerWidth>=1024?3:(window.innerWidth>=720?2:1); }
-  function applyPerView(){
-    perView=computePerView();
-    document.querySelectorAll('.hp-slide').forEach(sl=>{ sl.style.flexBasis=(100/perView)+'%'; });
-    buildDots(); update();
-  }
-  function buildDots(){
-    const pages=Math.max(1, Math.ceil(items.length/perView));
-    dots.innerHTML=Array.from({length:pages}, (_,i)=>`<button class="hp-dot${i===Math.floor(index/perView)?' active':''}" data-i="${i}"></button>`).join('');
-  }
-  function update(){ track.style.transform=`translateX(-${(index*(100/perView))}%)`; highlightDot(); }
-  function highlightDot(){ const page=Math.floor(index/perView); [...dots.children].forEach((d,i)=>d.classList.toggle('active', i===page)); }
-  function go(i){ index=(i+items.length)%items.length; update(); }
-  function next(){ if(index<Math.max(0,items.length-1)) go(index+1); else go(0); }
-  function prev(){ if(index>0) go(index-1); else go(Math.max(0,items.length-1)); }
-  function startAuto(){ stopAuto(); if(items.length>perView) autoTimer=setInterval(next, AUTO_MS); }
-  function stopAuto(){ if(autoTimer){ clearInterval(autoTimer); autoTimer=null; } }
+function pageWidth(){ return vp.clientWidth; }
+function pagesCount(){ return Math.max(1, Math.ceil(vp.scrollWidth / pageWidth())); }
+function goPage(p){ PAGE=p; vp.scrollTo({left: p*pageWidth(), behavior:'smooth'}); }
+function next(){ goPage( (PAGE+1) % pagesCount() ); }
+function prev(){ goPage( (PAGE-1+pagesCount()) % pagesCount() ); }
+function startAuto(){ stopAuto(); autoT=setInterval(next, 6000); }
+function stopAuto(){ if(autoT){ clearInterval(autoT); autoT=null; } }
 
-  prevBtn.addEventListener('click', ()=>{ prev(); startAuto(); });
-  nextBtn.addEventListener('click', ()=>{ next(); startAuto(); });
-  dots.addEventListener('click', e=>{ const b=e.target.closest('button.hp-dot'); if(!b) return; go(Number(b.dataset.i)*perView); startAuto(); });
-  document.querySelector('.hp-carousel').addEventListener('mouseenter', stopAuto);
-  document.querySelector('.hp-carousel').addEventListener('mouseleave', startAuto);
-  window.addEventListener('resize', ()=>{ const old=perView, nv=computePerView(); if(nv!==old) applyPerView(); });
-  document.addEventListener('keydown', e=>{ if(e.key==='ArrowLeft') prev(); if(e.key==='ArrowRight') next(); });
+prevBtn.addEventListener('click', ()=>{ prev(); startAuto(); });
+nextBtn.addEventListener('click', ()=>{ next(); startAuto(); });
+vp.addEventListener('mouseenter', stopAuto);
+vp.addEventListener('mouseleave', startAuto);
+window.addEventListener('resize', ()=>{ goPage(0); });
 
-  async function load(){
-    try{
-      const res=await fetch(CONFIG.CSV_URL,{cache:'no-store'}); const txt=await res.text();
-      items=applyFilters(dedup(parseCSV(txt)));
-      track.innerHTML=items.map(r=>`<div class="hp-slide">${cardHTML(r)}</div>`).join('');
-      applyPerView(); index=0; update(); startAuto();
-    }catch(e){
-      track.innerHTML='<div style="padding:18px;border:1.5px dashed #2a2d36;color:#9ca3af">Falha ao carregar CSV.</div>';
-      console.warn('Falha ao carregar CSV', e);
+/* Boot */
+(async function(){
+  try{
+    const res=await fetch(CONFIG.CSV_URL,{cache:'no-store'});
+    const txt=await res.text();
+    const all = dedup(parseCSV(txt));
+
+    // conjuntos para seleção
+    const yearOnly = filterYear(all, CONFIG.FILTERS.year);
+    const strict   = filterTier1(yearOnly);
+
+    // seleção com cotas por commodity
+    let rows;
+    if(CONFIG.SELECTION.byTheme){
+      rows = pickQuotaByTheme(strict, yearOnly);
+    }else{
+      rows = strict.slice(0, CONFIG.MAX_CARDS);
     }
+
+    vp.innerHTML = rows.map(cardHTML).join('') || '<div style="padding:18px;border:1.5px dashed #2a2d36;color:#9ca3af">Nenhuma notícia para exibir.</div>';
+    goPage(0); startAuto();
+  }catch(e){
+    vp.innerHTML = '<div style="padding:18px;border:1.5px dashed #2a2d36;color:#9ca3af">Falha ao carregar CSV.</div>';
+    console.warn('CSV error', e);
   }
-
-  // API opcional (mudar filtros sem re-embedar)
-  window.HP = {
-    setCSV:u=>{CONFIG.CSV_URL=u; load();},
-    setFilterYear:y=>{CONFIG.FILTERS.year=y; CONFIG.FILTERS.years=[]; load();},
-    clearFilterYear:()=>{CONFIG.FILTERS.year=null; CONFIG.FILTERS.years=[]; load();},
-    setTier1Only:b=>{CONFIG.FILTERS.tier1Only=!!b; load();},
-    setTier1List:list=>{CONFIG.FILTERS.tier1List=Array.isArray(list)?list:[]; TIER1_SET=new Set(CONFIG.FILTERS.tier1List.map(vehCanon)); load();}
-  };
-
-  load();
-  </script>
+})();
+</script>
 </body>
 </html>
