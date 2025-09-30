@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hedgepoint | Carrossel de Notícias</title>
+<style>
+  :root{
+    --hp-orange:#ED8B00;
+    --hp-black:#000000;
+    --hp-white:#FFFFFF;
+    --hp-gray:#4D4C4D;
+    --radius:18px;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,"Open Sans","Helvetica Neue",Arial,sans-serif;
+    color:var(--hp-black);
+    background:var(--hp-white);
+  }
+
+  .hp-wrap{
+    --pad:clamp(12px,2vw,20px);
+    padding:var(--pad);
+    max-width:1100px;
+    margin:0 auto;
+    position:relative;
+  }
+
+  .hp-head{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:12px;
+  }
+  .hp-title{
+    font-weight:700; letter-spacing:.3px;
+    font-size:clamp(18px,2.4vw,22px);
+  }
+
+  .hp-track{
+    display:grid;
+    grid-auto-flow:column;
+    grid-auto-columns: minmax(80%, 1fr);
+    gap:clamp(12px,2vw,16px);
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    scroll-behavior:smooth;
+    padding:var(--pad) 0 var(--pad) 0;
+  }
+  @media (min-width:720px){
+    .hp-track{ grid-auto-columns:minmax(46%,1fr); }
+  }
+  @media (min-width:1040px){
+    .hp-track{ grid-auto-columns:minmax(31%,1fr); }
+  }
+  .hp-track::-webkit-scrollbar{height:8px}
+  .hp-track::-webkit-scrollbar-thumb{background:#ddd;border-radius:999px}
+
+  .hp-card{
+    position:relative;
+    scroll-snap-align:start;
+    border:1px solid #eee;
+    border-radius:var(--radius);
+    overflow:hidden;
+    background:var(--hp-white);
+    box-shadow:0 2px 12px rgba(0,0,0,.06);
+    display:flex; flex-direction:column;
+    min-height:360px;
+  }
+
+  /* REMOVIDO: faixa/triângulo laranja inferior */
+  .hp-card::before{ content:none !important; display:none !important; }
+
+  /* FOTO: reduzir altura e alinhar topo para evitar cortar cabeça */
+  .hp-media{
+    aspect-ratio: 16 / 9;           /* base mobile */
+    background:#f4f4f4;
+    overflow:hidden;
+  }
+  .hp-media img{
+    width:100%; height:100%; object-fit:cover; display:block;
+    object-position: center top;     /* alinha pelo topo */
+  }
+  @media (min-width:720px){
+    .hp-media{ aspect-ratio: 16 / 8; }   /* um pouco mais rasa */
+  }
+  @media (min-width:1040px){
+    .hp-media{ aspect-ratio: 16 / 7; }   /* ainda mais rasa em desktop */
+  }
+
+  .hp-body{
+    display:flex; flex-direction:column; gap:10px;
+    padding:16px 16px 14px 16px;
+  }
+
+  .hp-commodity{
+    align-self:flex-start;
+    background:var(--hp-orange);
+    color:var(--hp-white);
+    font-weight:700;
+    font-size:12px;
+    padding:6px 10px;
+    border-radius:999px;
+    letter-spacing:.3px;
+  }
+
+  .hp-titlecard{
+    font-size: clamp(16px,2.1vw,18px);
+    line-height:1.3;
+    font-weight:700;
+    color:var(--hp-black);
+  }
+
+  .hp-meta{
+    display:flex; align-items:center; gap:8px;
+    color:var(--hp-gray);
+    font-size:13px;
+  }
+  .hp-meta img{
+    width:16px; height:16px; border-radius:4px; flex:0 0 16px;
+  }
+
+  .hp-actions{
+    margin-top:auto;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 16px 16px 16px;
+    gap:8px;
+  }
+  .hp-btn{
+    appearance:none; border:none; cursor:pointer;
+    padding:10px 14px; border-radius:12px;
+    font-weight:700; letter-spacing:.2px;
+    background:var(--hp-black); color:var(--hp-white);
+    text-decoration:none; display:inline-flex; align-items:center; gap:8px;
+  }
+  .hp-btn:focus-visible{ outline:2px solid var(--hp-orange); outline-offset:2px; }
+  .hp-btn:hover{ filter:brightness(1.05); }
+
+  .hp-nav{
+    position:absolute; inset:50% auto auto auto;
+    transform:translateY(-50%);
+    width:100%; pointer-events:none;
+    display:flex; justify-content:space-between; gap:8px;
+  }
+  .hp-arrow{
+    pointer-events:auto;
+    background:var(--hp-white);
+    border:1px solid #eaeaea;
+    box-shadow:0 2px 10px rgba(0,0,0,.08);
+    width:44px; height:44px; border-radius:999px;
+    display:grid; place-items:center; cursor:pointer;
+  }
+  .hp-arrow:focus-visible{ outline:2px solid var(--hp-orange); outline-offset:2px; }
+  .hp-arrow svg{ width:22px; height:22px; }
+  .hp-arrow:hover{ filter:brightness(1.03); }
+
+  .hp-empty{
+    padding:18px; border:1px dashed #ddd; border-radius:12px; color:#666;
+    background:#fafafa;
+  }
+</style>
+</head>
+<body>
+  <div class="hp-wrap" role="region" aria-label="Carrossel de notícias da Hedgepoint">
+    <div class="hp-head">
+      <div class="hp-title">Insights da nossa equipe &amp; na mídia</div>
+    </div>
+
+    <div class="hp-track" id="hpTrack" aria-live="polite"></div>
+
+    <div class="hp-nav" aria-hidden="false">
+      <button class="hp-arrow" id="hpPrev" aria-label="Anterior">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M14.8 4.5L7.3 12l7.5 7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M10 12h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <button class="hp-arrow" id="hpNext" aria-label="Próximo">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9.2 4.5L16.7 12l-7.5 7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M14 12H7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div id="hpStatus" class="hp-empty" style="display:none"></div>
+  </div>
+
+<script>
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSgOmJKXJFc3VCGk3uXxNU4CebpnskWmZEfOfRibIukeYNVm0egv-Al9upfZd1LXuP6nUSrgSMr8UYR/pub?output=csv&cb=2";
+
+function parseCSV(text){
+  const rows = [];
+  let i = 0, field = '', row = [], inQuotes = false;
+
+  const pushField = () => { row.push(field); field=''; };
+  const pushRow = () => { rows.push(row); row=[]; };
+
+  while(i < text.length){
+    const c = text[i];
+
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else { inQuotes = false; }
+      }else{
+        field += c;
+      }
+    }else{
+      if(c === '"'){ inQuotes = true; }
+      else if(c === ','){ pushField(); }
+      else if(c === '\n'){
+        pushField(); pushRow();
+      }else if(c === '\r'){ }
+      else{ field += c; }
+    }
+    i++;
+  }
+  if(field.length || row.length){ pushField(); pushRow(); }
+  return rows;
+}
+
+function getFavicon(urlString){
+  try{
+    const u = new URL(urlString);
+    return `https://www.google.com/s2/favicons?sz=32&domain=${u.hostname}`;
+  }catch(e){
+    return `https://www.google.com/s2/favicons?sz=32&domain=example.com`;
+  }
+}
+
+function createCard({Titulo, Veiculo, Commodity, Foto, Link}){
+  const card = document.createElement('article');
+  card.className = 'hp-card';
+
+  const media = document.createElement('div');
+  media.className = 'hp-media';
+  const img = document.createElement('img');
+  img.loading = 'lazy';
+  img.alt = `Especialista - ${Titulo || ''}`;
+  img.src = Foto || '';
+  media.appendChild(img);
+
+  const body = document.createElement('div');
+  body.className = 'hp-body';
+
+  const tag = document.createElement('span');
+  tag.className = 'hp-commodity';
+  tag.textContent = (Commodity || '').toUpperCase();
+
+  const h3 = document.createElement('h3');
+  h3.className = 'hp-titlecard';
+  h3.textContent = Titulo || '';
+
+  const meta = document.createElement('div');
+  meta.className = 'hp-meta';
+  const fav = document.createElement('img');
+  fav.loading = 'lazy';
+  fav.alt = '';
+  fav.src = getFavicon(Link || '');
+  const src = document.createElement('span');
+  src.textContent = Veiculo || '';
+  meta.append(fav, src);
+
+  body.append(tag, h3, meta);
+
+  const actions = document.createElement('div');
+  actions.className = 'hp-actions';
+  const btn = document.createElement('a');
+  btn.className = 'hp-btn';
+  btn.href = Link || '#';
+  btn.target = '_blank';
+  btn.rel = 'noopener noreferrer';
+  btn.innerHTML = `Ler a notícia
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="margin-left:2px">
+      <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M5 12h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>`;
+  actions.appendChild(btn);
+
+  card.append(media, body, actions);
+  return card;
+}
+
+async function initCarousel(){
+  const track = document.getElementById('hpTrack');
+  const status = document.getElementById('hpStatus');
+
+  try{
+    const res = await fetch(CSV_URL, {cache:"no-store"});
+    if(!res.ok) throw new Error('Falha ao carregar CSV');
+    const text = await res.text();
+
+    const rows = parseCSV(text).filter(r => r.length && r.some(c => c && c.trim() !== ''));
+    if(rows.length < 2){
+      status.style.display='block';
+      status.textContent = 'Nenhuma notícia para exibir no momento.';
+      return;
+    }
+
+    const header = rows[0].map(h => (h||'').trim());
+    const idx = {
+      Titulo: header.findIndex(h => /^titulo/i.test(h)),
+      Veiculo: header.findIndex(h => /^ve[ií]culo|veiculo|fonte|source|portal|site/i.test(h)),
+      Commodity: header.findIndex(h => /^commodity|categoria|tag/i.test(h)),
+      Foto: header.findIndex(h => /^foto|imagem|image|headshot|photo/i.test(h)),
+      Link: header.findIndex(h => /^link|url/i.test(h)),
+    };
+
+    for(let r=1; r<rows.length; r++){
+      const row = rows[r];
+      const data = {
+        Titulo: row[idx.Titulo] || '',
+        Veiculo: row[idx.Veiculo] || '',
+        Commodity: row[idx.Commodity] || '',
+        Foto: row[idx.Foto] || '',
+        Link: row[idx.Link] || '',
+      };
+      track.appendChild(createCard(data));
+    }
+
+    const prev = document.getElementById('hpPrev');
+    const next = document.getElementById('hpNext');
+
+    const scrollStep = () => Math.max(track.clientWidth * 0.9, 280);
+
+    prev.addEventListener('click', () => {
+      track.scrollBy({left: -scrollStep(), behavior:'smooth'});
+    });
+    next.addEventListener('click', () => {
+      track.scrollBy({left: scrollStep(), behavior:'smooth'});
+    });
+
+    track.addEventListener('keydown', (e) => {
+      if(e.key === 'ArrowRight') next.click();
+      if(e.key === 'ArrowLeft') prev.click();
+    });
+    track.tabIndex = 0;
+
+  }catch(err){
+    status.style.display='block';
+    status.textContent = 'Não foi possível carregar os dados agora. Verifique o caminho do CSV.';
+    console.error(err);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', initCarousel);
+</script>
+</body>
+</html>
