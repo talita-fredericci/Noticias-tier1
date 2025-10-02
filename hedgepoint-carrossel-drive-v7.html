@@ -7,32 +7,25 @@
 <style>
   :root{
     --hp-orange:#ED8B00;
-    --hp-black:#000000;
-    --hp-white:#FFFFFF;
-    --hp-gray:#4D4C4D;
-    --radius:10px;
-    --tag-radius:6px;
+    --hp-black:#000; --hp-white:#FFF; --hp-gray:#4D4C4D;
+    --radius:10px; --tag-radius:6px;
 
-    /* << ajuste aqui para controlar o quanto o viewport é maior que o card */
-    --peek:24px;            /* 24px de “folga” além do card */
-    --gap:14px;             /* espaçamento entre cards */
+    /* === controles rápidos === */
+    --media-h: clamp(110px, 22vw, 160px);  /* ALTURA DA IMAGEM (↓ deixa o card mais baixo) */
+    --card-min-h: 220px;                   /* altura mínima do card */
+    --peek: 24px;                          /* viewport um pouco maior que o card */
+    --gap: 12px;                           /* espaço entre cards */
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,"Open Sans","Helvetica Neue",Arial,sans-serif;color:var(--hp-black);background:var(--hp-white);}
   .hp-wrap{--pad:clamp(10px,2vw,18px);padding:var(--pad);max-width:900px;margin:0 auto;position:relative;}
-  .hp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
-  .hp-title{font-weight:700;letter-spacing:.3px;font-size:clamp(18px,2.3vw,21px);}
+  .hp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+  .hp-title{font-weight:700;letter-spacing:.3px;font-size:clamp(17px,2.1vw,20px);}
 
-  /* === 1 card por vez; o card mede (100% - --peek) === */
+  /* 1 card por vez; card = (100% - --peek) */
   .hp-track{
-    display:grid;
-    grid-auto-flow:column;
-    grid-auto-columns: calc(100% - var(--peek));
-    gap:var(--gap);
-    overflow-x:auto;
-    scroll-snap-type:x mandatory;
-    scroll-behavior:smooth;
-    /* padding cria o “respiro” para centralizar o card */
+    display:grid; grid-auto-flow:column; grid-auto-columns: calc(100% - var(--peek));
+    gap:var(--gap); overflow-x:auto; scroll-snap-type:x mandatory; scroll-behavior:smooth;
     padding: var(--pad) calc(var(--peek)/2) var(--pad);
   }
   .hp-track::-webkit-scrollbar{height:8px}
@@ -42,34 +35,31 @@
     position:relative; scroll-snap-align:start;
     border:1px solid #eee; border-radius:var(--radius); overflow:hidden;
     background:var(--hp-white); box-shadow:0 2px 10px rgba(0,0,0,.06);
-    display:flex; flex-direction:column; min-height:340px;
+    display:flex; flex-direction:column; min-height:var(--card-min-h);
   }
 
-  /* Imagem mais baixa para card compacto */
-  .hp-media{ aspect-ratio:21/10; background:#f4f4f4; overflow:hidden; }
-  .hp-media img{ width:100%; height:100%; object-fit:cover; display:block; object-position:center 38%; }
+  /* IMAGEM COM ALTURA FIXA (bem mais baixa) */
+  .hp-media{ height:var(--media-h); background:#f4f4f4; overflow:hidden; }
+  .hp-media img{ width:100%; height:100%; object-fit:cover; display:block; object-position:center 36%; }
 
-  .hp-body{ display:flex; flex-direction:column; gap:6px; padding:12px 12px 10px; }
+  .hp-body{ display:flex; flex-direction:column; gap:6px; padding:10px 12px 8px; }
 
-  .hp-expert{ font-size:clamp(17px,2vw,19px); color:var(--hp-orange); font-weight:800; line-height:1.2; letter-spacing:.2px; }
+  .hp-expert{ font-size:clamp(16px,1.9vw,18px); color:var(--hp-orange); font-weight:800; line-height:1.15; }
+  .hp-commodity{ align-self:flex-start; background:var(--hp-orange); color:#fff; font-weight:800; font-size:11px; padding:4px 8px; border-radius:var(--tag-radius); letter-spacing:.3px; }
 
-  .hp-commodity{ align-self:flex-start; background:var(--hp-orange); color:var(--hp-white);
-    font-weight:800; font-size:12px; padding:5px 9px; border-radius:var(--tag-radius); letter-spacing:.3px; }
-
-  .hp-titlecard{ font-size:clamp(15px,1.75vw,16.5px); line-height:1.28; font-weight:700; margin:0; }
+  .hp-titlecard{ font-size:clamp(14px,1.6vw,16px); line-height:1.25; font-weight:700; margin:0; }
   .hp-titlecard a{ color:inherit; text-decoration:none; }
   .hp-titlecard a:hover{ text-decoration:underline; }
 
-  .hp-meta{ display:flex; align-items:center; gap:8px; color:var(--hp-gray); font-size:13px; margin-top:0; }
-  .hp-meta img{ width:16px; height:16px; border-radius:4px; flex:0 0 16px; }
+  .hp-meta{ display:flex; align-items:center; gap:6px; color:var(--hp-gray); font-size:12px; margin-top:0; }
+  .hp-meta img{ width:14px; height:14px; border-radius:4px; flex:0 0 14px; }
 
   .hp-nav{ position:absolute; inset:50% auto auto auto; transform:translateY(-50%); width:100%; pointer-events:none; display:flex; justify-content:space-between; gap:8px; }
-  .hp-arrow{ pointer-events:auto; background:var(--hp-white); border:1px solid #eaeaea; box-shadow:0 2px 10px rgba(0,0,0,.08); width:42px; height:42px; border-radius:999px; display:grid; place-items:center; cursor:pointer; }
+  .hp-arrow{ pointer-events:auto; background:#fff; border:1px solid #eaeaea; box-shadow:0 2px 10px rgba(0,0,0,.08); width:36px; height:36px; border-radius:999px; display:grid; place-items:center; cursor:pointer; }
+  .hp-arrow svg{ width:18px; height:18px; }
   .hp-arrow:focus-visible{ outline:2px solid var(--hp-orange); outline-offset:2px; }
-  .hp-arrow svg{ width:21px; height:21px; }
-  .hp-arrow:hover{ filter:brightness(1.03); }
 
-  .hp-empty{ padding:14px; border:1px dashed #ddd; border-radius:var(--radius); color:#666; background:#fafafa; }
+  .hp-empty{ padding:12px; border:1px dashed #ddd; border-radius:var(--radius); color:#666; background:#fafafa; }
 </style>
 </head>
 <body>
@@ -90,7 +80,7 @@
   </div>
 
 <script>
-const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQriFFRu5l_lZvXyKLkk_C32g79FhADcf2XEw9FPUqkd5cg-k_csA5ctbFivtY7TUd8jWTWF2zM95TM/pub?output=csv";
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR-O2Tqv8gNg03327hWC72aUVal1bR0uFQccKb2OjtsBxolqi0rBL5awfj39egHUnZDtP_kcNPCM0gt/pub?output=csv";
 
 /* Força UTF-8 */
 async function fetchCSVUtf8(url){
@@ -218,15 +208,13 @@ async function initCarousel(){
     const prev=document.getElementById('hpPrev');
     const next=document.getElementById('hpNext');
 
-    // Calcula o avanço EXATO de um card (largura do card + gap)
+    /* avança exatamente a largura do card + gap */
     const getStep = () => {
       const first = track.firstElementChild;
       if(!first) return track.clientWidth;
-      const style = getComputedStyle(track);
       const gap = parseFloat(getComputedStyle(track).gap || '0');
       return first.getBoundingClientRect().width + gap;
     };
-
     prev.addEventListener('click', ()=> track.scrollBy({left:-getStep(),behavior:'smooth'}));
     next.addEventListener('click', ()=> track.scrollBy({left: getStep(),behavior:'smooth'}));
 
