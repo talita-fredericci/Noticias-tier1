@@ -3,77 +3,90 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Hedgepoint | Carrossel de Notícias</title>
+<title>Hedgepoint | Carrossel de Notícias (Crachá)</title>
 <style>
   :root{
     --hp-orange:#ED8B00;
     --hp-black:#000; --hp-white:#FFF; --hp-gray:#4D4C4D;
     --radius:10px; --tag-radius:6px;
 
-    /* === controles rápidos === */
-    --media-h: clamp(110px, 22vw, 160px);  /* ALTURA DA IMAGEM (↓ deixa o card mais baixo) */
-    --card-min-h: 220px;                   /* altura mínima do card */
-    --peek: 24px;                          /* viewport um pouco maior que o card */
-    --gap: 12px;                           /* espaço entre cards */
+    /* ===== formato “crachá” ===== */
+    --card-w: clamp(280px, 48vw, 420px);   /* LARGURA do card (estreito) */
+    --media-h: clamp(260px, 42vh, 380px);  /* ALTURA da imagem (alto) */
+    --peek: 24px;                          /* respiro do viewport vs card */
+    --gap: 14px;                           /* espaço entre cards */
   }
+
   *{box-sizing:border-box}
   body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,"Open Sans","Helvetica Neue",Arial,sans-serif;color:var(--hp-black);background:var(--hp-white);}
-  .hp-wrap{--pad:clamp(10px,2vw,18px);padding:var(--pad);max-width:900px;margin:0 auto;position:relative;}
-  .hp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
-  .hp-title{font-weight:700;letter-spacing:.3px;font-size:clamp(17px,2.1vw,20px);}
+  .hp-wrap{--pad:clamp(10px,2vw,18px);padding:var(--pad);max-width:1000px;margin:0 auto;position:relative;}
+  .hp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .hp-title{font-weight:700;letter-spacing:.3px;font-size:clamp(18px,2.2vw,22px);}
 
-  /* 1 card por vez; card = (100% - --peek) */
+  /* ===== carrossel: 1 card por vez, estreito e alto ===== */
   .hp-track{
-    display:grid; grid-auto-flow:column; grid-auto-columns: calc(100% - var(--peek));
-    gap:var(--gap); overflow-x:auto; scroll-snap-type:x mandatory; scroll-behavior:smooth;
-    padding: var(--pad) calc(var(--peek)/2) var(--pad);
+    display:grid;
+    grid-auto-flow:column;
+    grid-auto-columns: min(var(--card-w), calc(100% - var(--peek)));
+    justify-content:center;                /* centraliza o card na área visível */
+    gap:var(--gap);
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    scroll-behavior:smooth;
+    padding: var(--pad) max(calc((100% - var(--card-w))/2), calc(var(--peek)/2)) var(--pad);
   }
   .hp-track::-webkit-scrollbar{height:8px}
   .hp-track::-webkit-scrollbar-thumb{background:#ddd;border-radius:999px}
 
   .hp-card{
-    position:relative; scroll-snap-align:start;
+    position:relative; scroll-snap-align:center;
+    width:100%;
     border:1px solid #eee; border-radius:var(--radius); overflow:hidden;
-    background:var(--hp-white); box-shadow:0 2px 10px rgba(0,0,0,.06);
-    display:flex; flex-direction:column; min-height:var(--card-min-h);
+    background:var(--hp-white); box-shadow:0 2px 12px rgba(0,0,0,.06);
+    display:flex; flex-direction:column;
   }
 
-  /* IMAGEM COM ALTURA FIXA (bem mais baixa) */
+  /* IMAGEM ALTA (badge) */
   .hp-media{ height:var(--media-h); background:#f4f4f4; overflow:hidden; }
-  .hp-media img{ width:100%; height:100%; object-fit:cover; display:block; object-position:center 36%; }
+  .hp-media img{ width:100%; height:100%; object-fit:cover; display:block; object-position:center 38%; }
 
-  .hp-body{ display:flex; flex-direction:column; gap:6px; padding:10px 12px 8px; }
+  .hp-body{ display:flex; flex-direction:column; gap:8px; padding:12px; }
 
-  .hp-expert{ font-size:clamp(16px,1.9vw,18px); color:var(--hp-orange); font-weight:800; line-height:1.15; }
-  .hp-commodity{ align-self:flex-start; background:var(--hp-orange); color:#fff; font-weight:800; font-size:11px; padding:4px 8px; border-radius:var(--tag-radius); letter-spacing:.3px; }
+  .hp-expert{ font-size:clamp(18px,2.1vw,20px); color:var(--hp-orange); font-weight:800; line-height:1.15; }
+  .hp-commodity{ align-self:flex-start; background:var(--hp-orange); color:#fff; font-weight:800; font-size:12px; padding:5px 9px; border-radius:var(--tag-radius); letter-spacing:.3px; }
 
-  .hp-titlecard{ font-size:clamp(14px,1.6vw,16px); line-height:1.25; font-weight:700; margin:0; }
+  .hp-titlecard{ font-size:clamp(15px,1.9vw,17px); line-height:1.28; font-weight:700; margin:0; }
   .hp-titlecard a{ color:inherit; text-decoration:none; }
   .hp-titlecard a:hover{ text-decoration:underline; }
 
-  .hp-meta{ display:flex; align-items:center; gap:6px; color:var(--hp-gray); font-size:12px; margin-top:0; }
-  .hp-meta img{ width:14px; height:14px; border-radius:4px; flex:0 0 14px; }
+  .hp-meta{ display:flex; align-items:center; gap:8px; color:var(--hp-gray); font-size:13px; margin-top:2px; }
+  .hp-meta img{ width:16px; height:16px; border-radius:4px; flex:0 0 16px; }
 
-  .hp-nav{ position:absolute; inset:50% auto auto auto; transform:translateY(-50%); width:100%; pointer-events:none; display:flex; justify-content:space-between; gap:8px; }
-  .hp-arrow{ pointer-events:auto; background:#fff; border:1px solid #eaeaea; box-shadow:0 2px 10px rgba(0,0,0,.08); width:36px; height:36px; border-radius:999px; display:grid; place-items:center; cursor:pointer; }
-  .hp-arrow svg{ width:18px; height:18px; }
+  /* setas sobrepostas */
+  .hp-nav{ position:absolute; inset:50% 0 auto 0; transform:translateY(-50%); pointer-events:none; }
+  .hp-ar-wrap{max-width:1000px; margin:0 auto; padding:0 var(--pad); display:flex; justify-content:space-between;}
+  .hp-arrow{ pointer-events:auto; background:#fff; border:1px solid #eaeaea; box-shadow:0 2px 10px rgba(0,0,0,.08); width:40px; height:40px; border-radius:999px; display:grid; place-items:center; cursor:pointer; }
+  .hp-arrow svg{ width:20px; height:20px; }
   .hp-arrow:focus-visible{ outline:2px solid var(--hp-orange); outline-offset:2px; }
 
-  .hp-empty{ padding:12px; border:1px dashed #ddd; border-radius:var(--radius); color:#666; background:#fafafa; }
+  .hp-empty{ padding:14px; border:1px dashed #ddd; border-radius:var(--radius); color:#666; background:#fafafa; }
 </style>
 </head>
 <body>
   <div class="hp-wrap" role="region" aria-label="Carrossel de notícias da Hedgepoint">
     <div class="hp-head"><div class="hp-title">Insights da nossa equipe &amp; na mídia</div></div>
+
     <div class="hp-track" id="hpTrack" aria-live="polite"></div>
 
     <div class="hp-nav" aria-hidden="false">
-      <button class="hp-arrow" id="hpPrev" aria-label="Anterior">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.8 4.5L7.3 12l7.5 7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 12h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      </button>
-      <button class="hp-arrow" id="hpNext" aria-label="Próximo">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 4.5L16.7 12l-7.5 7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 12H7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      </button>
+      <div class="hp-ar-wrap">
+        <button class="hp-arrow" id="hpPrev" aria-label="Anterior">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.8 4.5L7.3 12l7.5 7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 12h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <button class="hp-arrow" id="hpNext" aria-label="Próximo">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 4.5L16.7 12l-7.5 7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 12H7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
     </div>
 
     <div id="hpStatus" class="hp-empty" style="display:none"></div>
@@ -82,7 +95,7 @@
 <script>
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR-O2Tqv8gNg03327hWC72aUVal1bR0uFQccKb2OjtsBxolqi0rBL5awfj39egHUnZDtP_kcNPCM0gt/pub?output=csv";
 
-/* Força UTF-8 */
+/* UTF-8 sempre */
 async function fetchCSVUtf8(url){
   const res = await fetch(url, {cache:"no-store"});
   if(!res.ok) throw new Error("Falha ao carregar CSV");
@@ -90,7 +103,7 @@ async function fetchCSVUtf8(url){
   return new TextDecoder("utf-8").decode(buf);
 }
 
-/* Conta delimitadores fora de aspas numa linha */
+/* conta delimitadores fora de aspas */
 function countDelims(line, delim){
   let inQ=false, c=0;
   for(let i=0;i<line.length;i++){
@@ -100,17 +113,16 @@ function countDelims(line, delim){
   }
   return c;
 }
-/* Detecta , ou ; */
+/* detecta , ou ; */
 function sniffDelimiter(text){
   const lines = text.split(/\r?\n/).filter(l => l.trim().length>0).slice(0,3);
   let comma=0, semi=0;
   for(const l of lines){ comma += countDelims(l, ','); semi += countDelims(l, ';'); }
   return semi > comma ? ';' : ',';
 }
-/* Parser CSV com aspas e delimitador dinâmico */
+/* parser CSV com aspas e delimitador dinâmico */
 function parseCSV(text, delim){
-  const rows=[], DL=delim;
-  let i=0, field='', row=[], inQ=false;
+  const rows=[], DL=delim; let i=0, field='', row=[], inQ=false;
   const pushField=()=>{ row.push(field); field=''; };
   const pushRow =()=>{ rows.push(row); row=[]; };
   while(i<text.length){
@@ -122,7 +134,7 @@ function parseCSV(text, delim){
       if(ch === '"'){ inQ=true; }
       else if(ch === DL){ pushField(); }
       else if(ch === '\n'){ pushField(); pushRow(); }
-      else if(ch === '\r'){ /* ignore */ }
+      else if(ch === '\r'){ }
       else { field += ch; }
     }
     i++;
@@ -208,7 +220,6 @@ async function initCarousel(){
     const prev=document.getElementById('hpPrev');
     const next=document.getElementById('hpNext');
 
-    /* avança exatamente a largura do card + gap */
     const getStep = () => {
       const first = track.firstElementChild;
       if(!first) return track.clientWidth;
